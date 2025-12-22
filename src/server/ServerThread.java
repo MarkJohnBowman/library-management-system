@@ -45,10 +45,47 @@ public class ServerThread extends Thread {
             // Send welcome message
             sendMessage("Welcome to the Library Management System!");
         
+         // Main conversation loop
+            boolean running = true;
+            while (running) {
+                
+                if (loggedInUser == null) {
+                    // Pre-login menu
+                    sendMessage("\n=== MENU ===");
+                    sendMessage("1. Register");
+                    sendMessage("2. Login");
+                    sendMessage("3. Exit");
+                    sendMessage("Choose an option:");
+                    
+                    String choice = (String) in.readObject();
+                    
+                    switch (choice.trim()) {
+                    case "1":
+                        sendMessage("Registration coming soon!");
+                        break;
+                    case "2":
+                        sendMessage("Login coming soon!");
+                        break;
+                    case "3":
+                        sendMessage("Goodbye!");
+                        running = false;
+                        break;
+                    default:
+                        sendMessage("Invalid option. Please try again.");
+                }
+                    
+                } else {
+                   
+                    sendMessage("You are logged in!");
+                    running = false;
+                }
+            }
             
         } catch (IOException e) {
             System.err.println("Connection error: " + e.getMessage());
-        } finally {
+        }  catch (ClassNotFoundException e) {
+            System.err.println("Data received in unknown format");
+        }finally {
             cleanup();
         }
     }
