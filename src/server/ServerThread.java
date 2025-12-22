@@ -64,7 +64,7 @@ public class ServerThread extends Thread {
                     	handleRegistration();
                         break;
                     case "2":
-                        sendMessage("Login coming soon!");
+                    	handleLogin();
                         break;
                     case "3":
                         sendMessage("Goodbye!");
@@ -76,8 +76,12 @@ public class ServerThread extends Thread {
                     
                 } else {
                    
-                    sendMessage("You are logged in!");
-                    running = false;
+                	// Post-login menu (role-based)
+                    if (loggedInUser.isStudent()) {
+                        running = handleStudentMenu();
+                    } else if (loggedInUser.isLibrarian()) {
+                        running = handleLibrarianMenu();
+                    }
                 }
             }
             
@@ -88,6 +92,88 @@ public class ServerThread extends Thread {
         }finally {
             cleanup();
         }
+    }
+        
+        // Handle student menu
+        private boolean handleStudentMenu() throws IOException, ClassNotFoundException {
+            sendMessage("\n=== STUDENT MENU ===");
+            sendMessage("Logged in as: " + loggedInUser.getName() + " (" + loggedInUser.getId() + ")");
+            sendMessage("3. Create Borrow Request");
+            sendMessage("6. View My Records");
+            sendMessage("7. Update Password");
+            sendMessage("8. Logout");
+            sendMessage("9. Exit");
+            sendMessage("Choose an option:");
+            
+            String choice = (String) in.readObject();
+            
+            switch (choice.trim()) {
+            case "3":
+                sendMessage("Create borrow request - coming soon!");
+                break;
+            case "6":
+                sendMessage("View records - coming soon!");
+                break;
+            case "7":
+                sendMessage("Update password - coming soon!");
+                break;
+            case "8":
+                loggedInUser = null;
+                sendMessage("Logged out successfully!");
+                break;
+            case "9":
+                sendMessage("Goodbye!");
+                return false;
+            default:
+                sendMessage("Invalid option. Please try again.");
+        }
+        
+        return true;
+    }
+        
+    // handle librarian menu 
+        private boolean handleLibrarianMenu() throws IOException, ClassNotFoundException {
+            sendMessage("\n=== LIBRARIAN MENU ===");
+            sendMessage("Logged in as: " + loggedInUser.getName() + " (" + loggedInUser.getId() + ")");
+            sendMessage("3. Create New Book Entry");
+            sendMessage("4. View All Records");
+            sendMessage("5. Assign Borrow Request");
+            sendMessage("6. View Records Assigned to Me");
+            sendMessage("7. Update Password");
+            sendMessage("8. Logout");
+            sendMessage("9. Exit");
+            sendMessage("Choose an option:");
+            
+            String choice = (String) in.readObject();
+    
+            switch (choice.trim()) {
+            case "3":
+                sendMessage("Create book entry - coming soon!");
+                break;
+            case "4":
+                sendMessage("View all records - coming soon!");
+                break;
+            case "5":
+                sendMessage("Assign request - coming soon!");
+                break;
+            case "6":
+                sendMessage("View assigned records - coming soon!");
+                break;
+            case "7":
+                sendMessage("Update password - coming soon!");
+                break;
+            case "8":
+            	loggedInUser = null;
+                sendMessage("Logged out successfully!");
+                break;
+            case "9":
+                sendMessage("Goodbye!");
+                return false;
+            default:
+                sendMessage("Invalid option. Please try again.");
+        }
+        
+        return true;
     }
     
     // handle registration
@@ -161,6 +247,35 @@ public class ServerThread extends Thread {
        }
     }
     
+    // Handle user login
+    private void handleLogin() {
+        try {
+            sendMessage("\n=== LOGIN ===");
+            
+            // Get email
+            sendMessage("Enter your email:");
+            String email = (String) in.readObject();
+            
+            // Get password
+            sendMessage("Enter your password:");
+            String password = (String) in.readObject();
+            
+            // Find user with matching credentials
+            User user = findUser(email, password);
+    
+            if (user != null) {
+                loggedInUser = user;
+                sendMessage("SUCCESS: Login successful! Welcome, " + user.getName());
+                System.out.println("User logged in: " + user.getEmail());
+            } else {
+                sendMessage("ERROR: Invalid email or password. Login failed.");
+            }
+            
+        } catch (IOException | ClassNotFoundException e) {
+            System.err.println("Error during login: " + e.getMessage());
+        }
+    }
+    
     // check if ID is already taken 
     private boolean isIdTaken(String userId) {
         synchronized (registeredUsers) {
@@ -183,6 +298,19 @@ public class ServerThread extends Thread {
             }
         }
         return false;
+    }
+    
+    // Find user by email and password
+    private User findUser(String email, String password) {
+        synchronized (registeredUsers) {
+            for (User user : registeredUsers) {
+                if (user.getEmail().equalsIgnoreCase(email) && 
+                    user.getPassword().equals(password)) {
+                    return user;
+                }
+            }
+        }
+        return null;
     }
     
     // Send a message to the client
