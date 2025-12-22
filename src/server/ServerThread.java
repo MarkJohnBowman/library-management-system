@@ -103,10 +103,22 @@ public class ServerThread extends Thread {
             sendMessage("Enter your ID (Students: G00123456, Librarians: LIB001):");
             String userId = (String) in.readObject();
             
+            // Check if ID already exists
+            if (isIdTaken(userId)) {
+                sendMessage("ERROR: ID already exists. Registration failed.");
+                return;
+            }
+            
             // Get email
             sendMessage("Enter your email:");
             String email = (String) in.readObject();
     
+            // Check if email already exists
+            if (isEmailTaken(email)) {
+                sendMessage("ERROR: Email already exists. Registration failed.");
+                return;
+            }
+            
             // Get password
             sendMessage("Enter your password:");
             String password = (String) in.readObject();
@@ -147,6 +159,30 @@ public class ServerThread extends Thread {
        } catch (IOException | ClassNotFoundException e) {
            System.err.println("Error during registration: " + e.getMessage());
        }
+    }
+    
+    // check if ID is already taken 
+    private boolean isIdTaken(String userId) {
+        synchronized (registeredUsers) {
+            for (User user : registeredUsers) {
+                if (user.getId().equals(userId)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    
+    // check if email is already taken 
+    private boolean isEmailTaken(String email) {
+        synchronized (registeredUsers) {
+            for (User user : registeredUsers) {
+                if (user.getEmail().equalsIgnoreCase(email)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
     
     // Send a message to the client
