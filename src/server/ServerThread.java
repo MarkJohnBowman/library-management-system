@@ -61,7 +61,7 @@ public class ServerThread extends Thread {
                     
                     switch (choice.trim()) {
                     case "1":
-                        sendMessage("Registration coming soon!");
+                    	handleRegistration();
                         break;
                     case "2":
                         sendMessage("Login coming soon!");
@@ -88,6 +88,65 @@ public class ServerThread extends Thread {
         }finally {
             cleanup();
         }
+    }
+    
+    // handle registration
+    private void handleRegistration() {
+        try {
+            sendMessage("\n=== REGISTRATION ===");
+            
+            // Get name
+            sendMessage("Enter your name:");
+            String name = (String) in.readObject();
+            
+            // Get ID
+            sendMessage("Enter your ID (Students: G00123456, Librarians: LIB001):");
+            String userId = (String) in.readObject();
+            
+            // Get email
+            sendMessage("Enter your email:");
+            String email = (String) in.readObject();
+    
+            // Get password
+            sendMessage("Enter your password:");
+            String password = (String) in.readObject();
+            
+            // Get department
+            sendMessage("Enter your department name:");
+            String departmentName = (String) in.readObject();
+            
+            // Get role
+            sendMessage("Select role (1=Student, 2=Librarian):");
+            String roleChoice = (String) in.readObject();
+            
+            // Convert to enum
+            User.Role userRole;
+            if (roleChoice.equals("1")) {
+                userRole = User.Role.STUDENT;
+            } else if (roleChoice.equals("2")) {
+                userRole = User.Role.LIBRARIAN;
+            } else {
+                sendMessage("ERROR: Invalid role selection. Registration failed.");
+                return;
+            }
+            
+            // Create new user
+            User newUser = new User(name, userId, email, password, departmentName, userRole);
+            
+            // Add to list
+            synchronized (registeredUsers) {
+                registeredUsers.add(newUser);
+            }
+            
+            sendMessage("SUCCESS: Registration complete! You can now log in.");
+            System.out.println("New user registered: " + newUser);
+            
+            // Save data
+            Provider.saveData();
+            
+       } catch (IOException | ClassNotFoundException e) {
+           System.err.println("Error during registration: " + e.getMessage());
+       }
     }
     
     // Send a message to the client
