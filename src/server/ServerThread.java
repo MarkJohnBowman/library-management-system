@@ -112,7 +112,8 @@ public class ServerThread extends Thread {
             	 handleCreateBorrowRequest();
                 break;
             case "6":
-                sendMessage("View records - coming soon!");
+                handleViewMyRecords();
+
                 break;
             case "7":
                 sendMessage("Update password - coming soon!");
@@ -392,6 +393,42 @@ public class ServerThread extends Thread {
             
         } catch (IOException | ClassNotFoundException e) {
             System.err.println("Error creating book entry: " + e.getMessage());
+        }
+    }
+    
+    // Handle viewing records created by currrent user
+    private void handleViewMyRecords() {
+        try {
+            sendMessage("\n=== MY RECORDS ===");
+            
+            int count = 0;
+            synchronized (libraryRecords) {
+                for (LibraryRecord record : libraryRecords) {
+                    // Only show records created by this user
+                    if (record.getCreatorId().equals(loggedInUser.getId())) {
+                        sendMessage("\n--- Record " + (count + 1) + " ---");
+                        sendMessage("Record ID: " + record.getRecordId());
+                        sendMessage("Type: " + record.getRecordType());
+                        sendMessage("Status: " + record.getStatus());
+                        sendMessage("Date: " + record.getFormattedDate());
+                        
+                        if (!record.getAssignedLibrarianId().isEmpty()) {
+                            sendMessage("Assigned to: " + record.getAssignedLibrarianId());
+                        }
+                        
+                        count++;
+                    }
+                }
+            }
+            
+            if (count == 0) {
+                sendMessage("No records found.");
+            } else {
+                sendMessage("\nTotal records: " + count);
+            }
+            
+        } catch (Exception e) {
+            System.err.println("Error viewing records: " + e.getMessage());
         }
     }
     
