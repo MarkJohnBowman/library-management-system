@@ -152,7 +152,7 @@ public class ServerThread extends Thread {
             	handleCreateBookEntry();
                 break;
             case "4":
-                sendMessage("View all records - coming soon!");
+            	handleViewAllRecords();
                 break;
             case "5":
                 sendMessage("Assign request - coming soon!");
@@ -429,6 +429,50 @@ public class ServerThread extends Thread {
             
         } catch (Exception e) {
             System.err.println("Error viewing records: " + e.getMessage());
+        }
+    }
+    
+    // Handle viewing all records (librarian only)
+    /**
+     * Handle viewing all records (librarians only)
+     */
+    private void handleViewAllRecords() {
+        try {
+            sendMessage("\n=== ALL LIBRARY RECORDS ===");
+            
+            int count = 0;
+            synchronized (libraryRecords) {
+                for (LibraryRecord record : libraryRecords) {
+                    sendMessage("\n--- Record " + (count + 1) + " ---");
+                    sendMessage("Record ID: " + record.getRecordId());
+                    sendMessage("Type: " + record.getRecordType());
+                    sendMessage("Created by: " + record.getCreatorId());
+                    sendMessage("Status: " + record.getStatus());
+                    sendMessage("Date: " + record.getFormattedDate());
+                    
+                    // Show book details if it's a book entry
+                    if (record.getRecordType() == LibraryRecord.RecordType.NEW_BOOK_ENTRY) {
+                        sendMessage("Title: " + record.getBookTitle());
+                        sendMessage("Author: " + record.getBookAuthor());
+                        sendMessage("ISBN: " + record.getBookISBN());
+                    }
+                    
+                    if (!record.getAssignedLibrarianId().isEmpty()) {
+                        sendMessage("Assigned to: " + record.getAssignedLibrarianId());
+                    }
+                    
+                    count++;
+                }
+            }
+            
+            if (count == 0) {
+                sendMessage("No records in the system.");
+            } else {
+                sendMessage("\nTotal records: " + count);
+            }
+            
+        } catch (Exception e) {
+            System.err.println("Error viewing all records: " + e.getMessage());
         }
     }
     
