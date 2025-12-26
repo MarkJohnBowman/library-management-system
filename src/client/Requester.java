@@ -1,5 +1,6 @@
 package client;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -50,12 +51,39 @@ public class Requester {
             
             System.out.println("Connection established. Ready to communicate.\n");
             
-            // TODO: Handle communication loop
+            // Main communication loop
+            boolean running = true;
+            while (running) {
+                try {
+                    // Receive message from server
+                    String serverMessage = (String) in.readObject();
+                    System.out.println(serverMessage);
+                    
+                    // Check if server is asking for input (ends with ":")
+                    if (serverMessage.endsWith(":")) {
+                        // Send user input to server
+                        String userInput = scanner.nextLine();
+                        out.writeObject(userInput);
+                        out.flush();
+                    }
+                    
+                 // Check for goodbye message
+                    if (serverMessage.contains("Goodbye")) {
+                        running = false;
+                    }
+                    
+                } catch (EOFException e) {
+                    System.out.println("Server closed connection.");
+                    running = false;
+                }
+            }
             
-        } catch (IOException e) {
-            System.err.println("Connection error: " + e.getMessage());
-        } finally {
-            cleanup();
+    	  } catch (IOException e) {
+              System.err.println("Connection error: " + e.getMessage());
+          } catch (ClassNotFoundException e) {
+              System.err.println("Received unknown data format");
+          } finally {
+              cleanup();
         }
         
     }
