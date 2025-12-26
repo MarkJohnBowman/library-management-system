@@ -148,7 +148,7 @@ public class ServerThread extends Thread {
     
             switch (choice.trim()) {
             case "3":
-                sendMessage("Create book entry - coming soon!");
+            	handleCreateBookEntry();
                 break;
             case "4":
                 sendMessage("View all records - coming soon!");
@@ -316,7 +316,7 @@ public class ServerThread extends Thread {
         }
     }
     
-    // HandleCreateBorrowRequest
+    // Handle CreateBorrow Request
     private void handleCreateBorrowRequest() {
         try {
             sendMessage("\n=== CREATE BORROW REQUEST ===");
@@ -342,6 +342,56 @@ public class ServerThread extends Thread {
             
         } catch (Exception e) {
             System.err.println("Error creating borrow request: " + e.getMessage());
+        }
+    }
+    
+    // Handle creating new book entry (librarians only)
+    private void handleCreateBookEntry() {
+        try {
+            sendMessage("\n=== CREATE NEW BOOK ENTRY ===");
+            
+            // Get book title
+            sendMessage("Enter book title:");
+            String bookTitle = (String) in.readObject();
+            
+            // Get book author
+            sendMessage("Enter book author:");
+            String bookAuthor = (String) in.readObject();
+            
+            // Get book ISBN
+            sendMessage("Enter book ISBN:");
+            String bookISBN = (String) in.readObject();
+            
+            // Generate unique record ID
+            String recordId = "BOOK" + System.currentTimeMillis();
+            
+            // Create book entry
+            LibraryRecord bookEntry = new LibraryRecord(
+                recordId, 
+                loggedInUser.getId(), 
+                bookTitle, 
+                bookAuthor, 
+                bookISBN
+            );
+            
+            // Add to records list
+            synchronized (libraryRecords) {
+                libraryRecords.add(bookEntry);
+            }
+            
+            sendMessage("SUCCESS: Book entry created!");
+            sendMessage("Book ID: " + recordId);
+            sendMessage("Title: " + bookTitle);
+            sendMessage("Author: " + bookAuthor);
+            sendMessage("ISBN: " + bookISBN);
+            sendMessage("Status: AVAILABLE");
+            System.out.println("Book entry created: " + recordId + " by " + loggedInUser.getId());
+            
+            // Save data
+            Provider.saveData();
+            
+        } catch (IOException | ClassNotFoundException e) {
+            System.err.println("Error creating book entry: " + e.getMessage());
         }
     }
     
