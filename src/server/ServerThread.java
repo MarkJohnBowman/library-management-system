@@ -178,6 +178,7 @@ public class ServerThread extends Thread {
     }
     
     // handle registration
+        
     private void handleRegistration() {
         try {
             sendMessage("\n=== REGISTRATION ===");
@@ -185,10 +186,18 @@ public class ServerThread extends Thread {
             // Get name
             sendMessage("Enter your name:");
             String name = (String) in.readObject();
+            if (!isValidInput(name)) {
+                sendMessage("ERROR: Name cannot be empty. Registration failed.");
+                return;
+            }
             
             // Get ID
             sendMessage("Enter your ID (Students: G00123456, Librarians: LIB001):");
             String userId = (String) in.readObject();
+            if (!isValidInput(userId)) {
+                sendMessage("ERROR: ID cannot be empty. Registration failed.");
+                return;
+            }
             
             // Check if ID already exists
             if (isIdTaken(userId)) {
@@ -249,6 +258,7 @@ public class ServerThread extends Thread {
     }
     
     // Handle user login
+    
     private void handleLogin() {
         try {
             sendMessage("\n=== LOGIN ===");
@@ -278,6 +288,7 @@ public class ServerThread extends Thread {
     }
     
     // Handle password update
+    
     private void handleUpdatePassword() {
         try {
             sendMessage("\n=== UPDATE PASSWORD ===");
@@ -318,6 +329,7 @@ public class ServerThread extends Thread {
     }
     
     // Handle CreateBorrow Request
+    
     private void handleCreateBorrowRequest() {
         try {
             sendMessage("\n=== CREATE BORROW REQUEST ===");
@@ -347,6 +359,7 @@ public class ServerThread extends Thread {
     }
     
     // Handle creating new book entry (librarians only)
+    
     private void handleCreateBookEntry() {
         try {
             sendMessage("\n=== CREATE NEW BOOK ENTRY ===");
@@ -397,6 +410,7 @@ public class ServerThread extends Thread {
     }
     
     // Handle viewing records created by currrent user
+    
     private void handleViewMyRecords() {
         try {
             sendMessage("\n=== MY RECORDS ===");
@@ -476,6 +490,7 @@ public class ServerThread extends Thread {
     }
     
     // Handle assigning a borrow request to current librarian
+    
     private void handleAssignBorrowRequest() {
         try {
             sendMessage("\n=== ASSIGN BORROW REQUEST ===");
@@ -548,9 +563,9 @@ public class ServerThread extends Thread {
         }
     }
     
-    /**
-     * Handle viewing records assigned to current librarian
-     */
+    
+    // Handle viewing records assigned to current librarian
+     
     private void handleViewAssignedRecords() {
         try {
             sendMessage("\n=== RECORDS ASSIGNED TO ME ===");
@@ -636,6 +651,11 @@ public class ServerThread extends Thread {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+    
+    // validate that input is not empty
+    private boolean isValidInput(String input) {
+        return input != null && !input.trim().isEmpty();
     }
     
     // Clean up resources
