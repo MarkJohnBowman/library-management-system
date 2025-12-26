@@ -158,7 +158,7 @@ public class ServerThread extends Thread {
             	handleAssignBorrowRequest();
                 break;
             case "6":
-                sendMessage("View assigned records - coming soon!");
+            	handleViewAssignedRecords();
                 break;
             case "7":
                 sendMessage("Update password - coming soon!");
@@ -432,10 +432,9 @@ public class ServerThread extends Thread {
         }
     }
     
-    // Handle viewing all records (librarian only)
-    /**
-     * Handle viewing all records (librarians only)
-     */
+    
+     // Handle viewing all records (librarians only)
+     
     private void handleViewAllRecords() {
         try {
             sendMessage("\n=== ALL LIBRARY RECORDS ===");
@@ -546,6 +545,48 @@ public class ServerThread extends Thread {
             
         } catch (IOException | ClassNotFoundException e) {
             System.err.println("Error assigning borrow request: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Handle viewing records assigned to current librarian
+     */
+    private void handleViewAssignedRecords() {
+        try {
+            sendMessage("\n=== RECORDS ASSIGNED TO ME ===");
+            
+            int count = 0;
+            synchronized (libraryRecords) {
+                for (LibraryRecord record : libraryRecords) {
+                    // Only show records assigned to this librarian
+                    if (record.getAssignedLibrarianId().equals(loggedInUser.getId())) {
+                        sendMessage("\n--- Record " + (count + 1) + " ---");
+                        sendMessage("Record ID: " + record.getRecordId());
+                        sendMessage("Type: " + record.getRecordType());
+                        sendMessage("Created by: " + record.getCreatorId());
+                        sendMessage("Status: " + record.getStatus());
+                        sendMessage("Date: " + record.getFormattedDate());
+                        
+                        // Show book details if it's a book entry
+                        if (record.getRecordType() == LibraryRecord.RecordType.NEW_BOOK_ENTRY) {
+                            sendMessage("Title: " + record.getBookTitle());
+                            sendMessage("Author: " + record.getBookAuthor());
+                            sendMessage("ISBN: " + record.getBookISBN());
+                        }
+                        
+                        count++;
+                    }
+                }
+            }
+            
+            if (count == 0) {
+                sendMessage("No records assigned to you.");
+            } else {
+                sendMessage("\nTotal assigned records: " + count);
+            }
+            
+        } catch (Exception e) {
+            System.err.println("Error viewing assigned records: " + e.getMessage());
         }
     }
     
