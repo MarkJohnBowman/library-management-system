@@ -155,7 +155,7 @@ public class ServerThread extends Thread {
             	handleViewAllRecords();
                 break;
             case "5":
-                sendMessage("Assign request - coming soon!");
+            	handleAssignBorrowRequest();
                 break;
             case "6":
                 sendMessage("View assigned records - coming soon!");
@@ -473,6 +473,79 @@ public class ServerThread extends Thread {
             
         } catch (Exception e) {
             System.err.println("Error viewing all records: " + e.getMessage());
+        }
+    }
+    
+    // Handle assigning a borrow request to current librarian
+    private void handleAssignBorrowRequest() {
+        try {
+            sendMessage("\n=== ASSIGN BORROW REQUEST ===");
+            
+            // First, show all unassigned borrow requests
+            sendMessage("Available borrow requests:");
+            int count = 0;
+            synchronized (libraryRecords) {
+                for (LibraryRecord record : libraryRecords) {
+                    if (record.getRecordType() == LibraryRecord.RecordType.BORROW_REQUEST 
+                        && record.getStatus() == LibraryRecord.Status.REQUESTED) {
+                        sendMessage("\n[" + record.getRecordId() + "]");
+                        sendMessage("  Created by: " + record.getCreatorId());
+                        sendMessage("  Date: " + record.getFormattedDate());
+                        count++;
+                    }
+                }
+            }
+            
+            if (count == 0) {
+                sendMessage("No unassigned borrow requests available.");
+                return;
+            }
+            
+            // Ask for record ID to assign
+            sendMessage("\nEnter the Record ID to assign to yourself:");
+            String recordId = (String) in.readObject();
+            
+            // Find and assign the record
+            boolean found = false;
+            synchronized (libraryRecords) {
+                for (LibraryRecord record : libraryRecords) {
+                    if (record.getRecordId().equals(recordId)) {
+                        found = true;
+                        
+                        // Check if it's a borrow request
+                        if (record.getRecordType() != LibraryRecord.RecordType.BORROW_REQUEST) {
+                            sendMessage("ERROR: This is not a borrow request.");
+                            return;
+                        }
+                        
+                        // Check if already assigned
+                        if (record.getStatus() != LibraryRecord.Status.REQUESTED) {
+                            sendMessage("ERROR: This request is already processed.");
+                            return;
+                        }
+                        
+                        // Assign to current librarian
+                        record.assignToLibrarian(loggedInUser.getId());
+                        
+                        sendMessage("SUCCESS: Borrow request assigned!");
+                        sendMessage("Record ID: " + recordId);
+                        sendMessage("Assigned to: " + loggedInUser.getId());
+                        sendMessage("Status: " + record.getStatus());
+                        System.out.println("Request " + recordId + " assigned to " + loggedInUser.getId());
+                        
+                        // Save data
+                        Provider.saveData();
+                        return;
+                    }
+                }
+            }
+            
+            if (!found) {
+                sendMessage("ERROR: Record ID not found.");
+            }
+            
+        } catch (IOException | ClassNotFoundException e) {
+            System.err.println("Error assigning borrow request: " + e.getMessage());
         }
     }
     
