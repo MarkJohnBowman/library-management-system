@@ -109,7 +109,7 @@ public class ServerThread extends Thread {
             
             switch (choice.trim()) {
             case "3":
-                sendMessage("Create borrow request - coming soon!");
+            	 handleCreateBorrowRequest();
                 break;
             case "6":
                 sendMessage("View records - coming soon!");
@@ -313,6 +313,35 @@ public class ServerThread extends Thread {
             
         } catch (IOException | ClassNotFoundException e) {
             System.err.println("Error during password update: " + e.getMessage());
+        }
+    }
+    
+    // HandleCreateBorrowRequest
+    private void handleCreateBorrowRequest() {
+        try {
+            sendMessage("\n=== CREATE BORROW REQUEST ===");
+            
+            // Generate unique record ID
+            String recordId = "REQ" + System.currentTimeMillis();
+            
+            // Create borrow request
+            LibraryRecord request = new LibraryRecord(recordId, loggedInUser.getId());
+            
+            // Add to records list
+            synchronized (libraryRecords) {
+                libraryRecords.add(request);
+            }
+            
+            sendMessage("SUCCESS: Borrow request created!");
+            sendMessage("Request ID: " + recordId);
+            sendMessage("Status: REQUESTED");
+            System.out.println("Borrow request created: " + recordId + " by " + loggedInUser.getId());
+            
+            // Save data
+            Provider.saveData();
+            
+        } catch (Exception e) {
+            System.err.println("Error creating borrow request: " + e.getMessage());
         }
     }
     
