@@ -276,6 +276,46 @@ public class ServerThread extends Thread {
         }
     }
     
+    // Handle password update
+    private void handleUpdatePassword() {
+        try {
+            sendMessage("\n=== UPDATE PASSWORD ===");
+            
+            // Verify current password
+            sendMessage("Enter your current password:");
+            String currentPassword = (String) in.readObject();
+            
+            if (!loggedInUser.getPassword().equals(currentPassword)) {
+                sendMessage("ERROR: Current password is incorrect. Password not changed.");
+                return;
+            }
+            
+         // Get new password
+            sendMessage("Enter your new password:");
+            String newPassword = (String) in.readObject();
+            
+            // Confirm new password
+            sendMessage("Confirm your new password:");
+            String confirmPassword = (String) in.readObject();
+            
+            if (!newPassword.equals(confirmPassword)) {
+                sendMessage("ERROR: Passwords do not match. Password not changed.");
+                return;
+            }
+            
+         // Update password
+            loggedInUser.setPassword(newPassword);
+            sendMessage("SUCCESS: Password updated successfully!");
+            System.out.println("Password updated for user: " + loggedInUser.getEmail());
+            
+            // Save data
+            Provider.saveData();
+            
+        } catch (IOException | ClassNotFoundException e) {
+            System.err.println("Error during password update: " + e.getMessage());
+        }
+    }
+    
     // check if ID is already taken 
     private boolean isIdTaken(String userId) {
         synchronized (registeredUsers) {
