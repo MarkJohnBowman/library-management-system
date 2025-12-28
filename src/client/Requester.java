@@ -5,15 +5,10 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.Scanner;
 
-/**
- * Requester - Client application for Library Management System
- * Connects to Provider server on localhost:2004
- * 
- * @author Mark Bowman
- * @student G00389705
- */
+// Client application that connects to the library management server
 public class Requester {
     
     private static final String SERVER_ADDRESS = "localhost";
@@ -34,14 +29,13 @@ public class Requester {
         client.start();
     }
     
-    // clean up resources
     public void start() {
-    	try {
+        try {
             // Connect to server
             socket = new Socket(SERVER_ADDRESS, SERVER_PORT);
             System.out.println("Connected to server at " + SERVER_ADDRESS + ":" + SERVER_PORT);
             
-            // Set up streams (IMPORTANT: Output first, then input)
+            // Set up streams (output first, then input)
             out = new ObjectOutputStream(socket.getOutputStream());
             out.flush();
             in = new ObjectInputStream(socket.getInputStream());
@@ -61,13 +55,13 @@ public class Requester {
                     
                     // Check if server is asking for input (ends with ":")
                     if (serverMessage.endsWith(":")) {
-                        // Send user input to server
+                        // Get user input and send to server
                         String userInput = scanner.nextLine();
                         out.writeObject(userInput);
                         out.flush();
                     }
                     
-                 // Check for goodbye message
+                    // Check for goodbye message
                     if (serverMessage.contains("Goodbye")) {
                         running = false;
                     }
@@ -75,19 +69,24 @@ public class Requester {
                 } catch (EOFException e) {
                     System.out.println("Server closed connection.");
                     running = false;
+                } catch (ClassNotFoundException e) {
+                    System.err.println("Error: Received unknown data format from server");
+                    running = false;
                 }
             }
             
-    	  } catch (IOException e) {
-              System.err.println("Connection error: " + e.getMessage());
-          } catch (ClassNotFoundException e) {
-              System.err.println("Received unknown data format");
-          } finally {
-              cleanup();
+        } catch (UnknownHostException e) {
+            System.err.println("Error: Cannot find server at " + SERVER_ADDRESS);
+            System.err.println("Make sure the server is running.");
+        } catch (IOException e) {
+            System.err.println("Connection error: " + e.getMessage());
+            System.err.println("Make sure the server is running on port " + SERVER_PORT);
+        } finally {
+            cleanup();
         }
-        
     }
     
+    // Clean up resources when done
     private void cleanup() {
         try {
             if (scanner != null) scanner.close();
@@ -96,7 +95,7 @@ public class Requester {
             if (socket != null) socket.close();
             System.out.println("\nConnection closed.");
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("Error closing connection: " + e.getMessage());
         }
     }
 }
