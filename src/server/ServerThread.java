@@ -116,7 +116,7 @@ public class ServerThread extends Thread {
 
                 break;
             case "7":
-                sendMessage("Update password - coming soon!");
+            	handleUpdatePassword();
                 break;
             case "8":
                 loggedInUser = null;
@@ -161,7 +161,7 @@ public class ServerThread extends Thread {
             	handleViewAssignedRecords();
                 break;
             case "7":
-                sendMessage("Update password - coming soon!");
+            	handleUpdatePassword();
                 break;
             case "8":
             	loggedInUser = null;
